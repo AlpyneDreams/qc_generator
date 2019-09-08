@@ -1,0 +1,10 @@
+{
+    "python.autoComplete.extraPaths": [
+        "E:/Files/Scripts/Blender Addons/bpy_autocomplete/2.80"
+    ],
+    "python.linting.pylintArgs": [
+        "--init-hook",
+        "import sys; sys.path.append('d:/autocomplete/2.79')"
+    ],
+    "python.linting.enabled": true
+}
