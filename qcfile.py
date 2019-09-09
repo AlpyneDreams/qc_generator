@@ -42,8 +42,11 @@ def write_qc_file(props):
             
             if type(value) == str and value == '':  # discard empty strings
                 continue
-            
-            writef("$%s %s" % (key, value))
+
+            if type(value) == str:
+                writef('$%s "%s"' % (key, value))
+            else:
+                writef('$%s %s' % (key, value))
 
     for body in props.bodies:
         if body.component_type in {'body', 'model', 'sequence'}:

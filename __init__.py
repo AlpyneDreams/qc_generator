@@ -188,7 +188,7 @@ class QC_OT_WriteQC(Operator):
 class QC_OT_AutofillVS(Operator):
     bl_idname = "qcgen.autofill_vs"
     bl_label = "Autofill Blender Source Tools paths"
-
+    
     def execute(self, context):
         #print()
         if not context.scene.vs:
