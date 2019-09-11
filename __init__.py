@@ -52,6 +52,11 @@ class QC_Body(PropertyGroup):
     
 
 class QC_Properties(PropertyGroup):
+    qc_text : PointerProperty(
+        name="QC Text Output",
+        type=bpy.types.Text,
+        options={'HIDDEN'}
+    )
     modelname: StringProperty(
         name="MDL Name", description="The path of the .mdl file relative to the models/ dir.")
     cdmaterials: StringProperty(
@@ -181,8 +186,13 @@ class QC_OT_WriteQC(Operator):
     bl_label = "Write QC File"
 
     def execute(self, context):
-        from .qcfile import write_qc_file
-        write_qc_file(context.scene.qcgen)
+        from .qcfile import write_qc_file, qc_from_vs
+        qctxt = qc_from_vs(context)
+        qc_text = context.scene.qcgen.qc_text
+        if qc_text:
+            qc_text.clear()
+            qc_text.write(qctxt)
+        #write_qc_file(context.scene.qcgen)
         return{'FINISHED'}
 
 class QC_OT_AutofillVS(Operator):
@@ -252,12 +262,7 @@ class QC_PT_QCPanel(bpy.types.Panel):
 
         if context.scene.vs:
             layout.operator("qcgen.autofill_vs", text="Find Engine Path")
-
-        from .qcfile import qc_from_vs
-        qctxt = qc_from_vs(context).splitlines()
-        for line in qctxt:
-            layout.label(text=line)
-
+        
         layout.separator()
 
         layout.prop(qcgen, "modelname")
@@ -302,6 +307,8 @@ class QC_PT_QCPanel(bpy.types.Panel):
         col.prop(qcgen, "scale")
 
         layout.separator()
+
+        layout.prop(qcgen, 'qc_text')
 
         layout.operator("qcgen.write", text="Write QC")
 
