@@ -5,6 +5,68 @@ from bpy.props import *
 
 from . import QC_Properties
 
+# uses data from io_scene_valuesource
+def qc_from_vs(context):    
+    def qcln(s):
+        nonlocal qctxt
+        qctxt += s + '\n'
+
+    qctxt = str('')
+
+    from io_scene_valvesource.utils import actionsForFilter
+
+    bodies = []
+    body_reference = None
+    body_physics = None
+
+    sequences = []
+
+    for item in context.scene.vs.export_list:
+            #layout.label(text="{item_name} {ob_type}".format(**item))
+            if item.ob_type in ['COLLECTION', 'OBJECT']:
+                if (not body_physics) and 'phys' in item.name.lower():
+                    body_physics = item
+                elif (not body_reference) and 'ref' in item.name.lower():
+                    body_reference = item
+                else:
+                    bodies.append(item)
+
+            elif item.ob_type == 'ACTION':
+                sequences.append(item)
+
+    # QC Command: $command "name" "path/file.smd"
+    # set name=False for nameless commands like $collisionmodel
+    def qc_item(item, cmd='body', subdir='', name=None):
+        obj = item.get_id()
+        if subdir == '' and obj.vs.subdir and obj.vs.subdir != '.':
+            subdir = obj.vs.subdir + '/'
+            
+        if name == False:
+            qcln('${cmd} "{subdir}{o.name}"'.format(cmd=cmd, subdir=subdir, o=obj))
+        else:
+            name = name or obj.name
+            qcln('${cmd} "{name}" "{subdir}{o.name}"'.format(cmd=cmd, subdir=subdir, o=obj, name=name))
+
+
+    
+
+
+    if body_reference:
+        qc_item(body_reference, name='body')
+    if body_physics:
+        qc_item(body_physics, cmd='collisionmodel', name=False)
+    
+    for seq in sequences:
+        obj = item.get_id()
+        if obj.data.vs.action_selection == 'FILTERED':
+            subdir = ''
+            if obj.vs.subdir and obj.vs.subdir != '.':
+                subdir = obj.vs.subdir + '/'
+            for action in actionsForFilter(obj.vs.action_filter):
+                qcln('$sequence "{o.name}" "{subdir}{o.name}.smd"'.format(subdir=subdir, o=action))
+    
+    return qctxt
+
 
 def write_qc_file(props):
     qc_path = os.path.splitext(os.path.basename(bpy.data.filepath))[0] + ".qc"

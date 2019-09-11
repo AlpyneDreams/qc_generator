@@ -6,9 +6,9 @@ from bpy.props import *
 
 import imp, sys, os
 for filename in [ f for f in os.listdir(os.path.dirname(os.path.realpath(__file__))) if f.endswith(".py") ]:
-	if filename == os.path.basename(__file__): continue
-	mod = sys.modules.get("{}.{}".format(__name__,filename[:-3]))
-	if mod: imp.reload(mod)
+    if filename == os.path.basename(__file__): continue
+    mod = sys.modules.get("{}.{}".format(__name__,filename[:-3]))
+    if mod: imp.reload(mod)
 
 bl_info = {
     "name": "QC Generator",
@@ -253,11 +253,16 @@ class QC_PT_QCPanel(bpy.types.Panel):
         if context.scene.vs:
             layout.operator("qcgen.autofill_vs", text="Find Engine Path")
 
+        from .qcfile import qc_from_vs
+        qctxt = qc_from_vs(context).splitlines()
+        for line in qctxt:
+            layout.label(text=line)
+
         layout.separator()
 
         layout.prop(qcgen, "modelname")
         layout.prop(qcgen, "cdmaterials")
-        row = layout.row()
+        """row = layout.row()
         row.template_list("QC_UL_BodyList", "", qcgen,
                              "bodies", qcgen, "bodies_active")
         row = layout.row()
@@ -288,7 +293,7 @@ class QC_PT_QCPanel(bpy.types.Panel):
         layout.separator()
 
         layout.prop(qcgen, "surfaceprop")
-        layout.prop(qcgen, "contents")
+        layout.prop(qcgen, "contents")"""
 
         split = layout.split()
         col = split.column()
