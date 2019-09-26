@@ -57,6 +57,17 @@ class QC_Properties(PropertyGroup):
         type=bpy.types.Text,
         options={'HIDDEN'}
     )
+    open_in_text_editor: BoolProperty(
+        name="Open in Text Editor",
+        options={'HIDDEN'},
+        default=True
+    )
+    save_qc_file: BoolProperty(
+        name="Automatically Overwrite File",
+        options={'HIDDEN'},
+        default=True
+    )
+    
     collisionmodel : PointerProperty(
         name="Collision Model",
         type=bpy.types.Object,
@@ -195,33 +206,96 @@ class QC_OT_MoveBody(Operator):
         return{'FINISHED'} 
 # endregion
 
+# based on biggest_non_image_area
+# from source/blender/editors/render/render_view.c
+# returns biggest area that is not uv/image editor
+# uses properties window as the last possible alternative
+def get_biggest_area(context):
+    sc = context.screen
+    big = None
+    maxsize = 0
+    pwmaxsize = 0
+    foundwin = False
+    for sa in sc.areas:
+        # only consider areas larger than 30x30
+        if sa.width > 30 and sa.height > 30:
+            size = sa.width * sa.height
+            if sa.type == 'PROPERTIES':
+                # only consider PROPERTIES windows if nothing else has been found
+                if not foundwin and size > pwmaxsize:
+                    bwmaxsize = size
+                    big = sa
+            elif size > maxsize:
+                maxsize = size
+                big = sa
+                foundwin = True
+    return big
+
 class QC_OT_WriteQC(Operator):
     bl_idname = "qcgen.write"
     bl_label = "Write QC File"
 
     def execute(self, context):
         from .qcfile import write_qc_file, qc_from_vs
+        qcgen = context.scene.qcgen
+        qcgen.last_info_msg = ""
         qctxt = qc_from_vs(context)
-        if not context.scene.qcgen.qc_text:
+
+        if not qcgen.qc_text:
             i = len(bpy.data.texts)
             bpy.ops.text.new()
-            context.scene.qcgen.qc_text = bpy.data.texts[i]
-            context.scene.qcgen.qc_text.name = os.path.splitext(os.path.basename(bpy.data.filepath))[0] + ".qc"
-        qc_text = context.scene.qcgen.qc_text
+            qcgen.qc_text = bpy.data.texts[i]
+            qcgen.qc_text.name = os.path.splitext(os.path.basename(bpy.data.filepath))[0] + ".qc"
+        qc_text = qcgen.qc_text
         qc_text.clear()
         qc_text.write(qctxt)
-
-        for area in bpy.context.screen.areas:
-            if area.type == 'TEXT_EDITOR':
-                text_editor = area.spaces.active
-                break
-        else:
-            text_editor = None
         
-        if text_editor:
-            text_editor.text = qc_text
+        text_editor_area = None
 
-        #write_qc_file(context.scene.qcgen)
+        if qcgen.open_in_text_editor:
+            # trying to emulate bpy.ops.render.view_show("INVOKE_DEFAULT")
+            # but pop up a text editor instead of an image editor.
+            # FIXME: this area should open as a temp area like view_show does
+            text_editor = None
+
+            # look for a text editor already on this screen
+            for area in bpy.context.screen.areas:
+                if area.type == 'TEXT_EDITOR':
+                    text_editor = area.spaces.active
+                    text_editor_area = area
+                    break
+            
+            # otherwise find the largest area on this screen
+            if not text_editor:
+                area = get_biggest_area(context)
+                if area:
+                    area.type = 'TEXT_EDITOR'
+                    text_editor = area.spaces.active
+                    text_editor_area = area
+            
+            if text_editor:
+                text_editor.text = qc_text
+
+                # scroll to top (FIXME: only works on subsequent uses)
+                text_editor.top = 0
+                text_editor.show_syntax_highlight = True
+                text_editor.show_line_highlight = True
+        
+        # HACK: currently not able to call bpy.ops.text.save()
+        # from this context. we can write the file but it will
+        # cause the file to be marked conflicted (even though it's not)
+        if qcgen.save_qc_file:
+            if qc_text.filepath:
+                qc_path = qc_text.filepath
+            else:
+                qc_path = os.path.splitext(os.path.basename(bpy.data.filepath))[0] + ".qc"
+                qc_path = os.path.join(os.path.dirname(bpy.data.filepath), qc_path)
+                qc_text.filepath = qc_path
+            with open(qc_path, 'w', encoding='utf8') as f:
+                f.write(qc_text.as_string())
+            
+            self.report({'INFO'}, "Saved file " + os.path.basename(qc_path))
+        
         return{'FINISHED'}
 
 class QC_OT_AutofillVS(Operator):
@@ -296,38 +370,6 @@ class QC_PT_QCPanel(bpy.types.Panel):
 
         layout.prop(qcgen, "modelname")
         layout.prop(qcgen, "cdmaterials")
-        """row = layout.row()
-        row.template_list("QC_UL_BodyList", "", qcgen,
-                             "bodies", qcgen, "bodies_active")
-        row = layout.row()
-        row.operator("bodies.add", icon='ADD', text="Add")
-        row.operator("bodies.remove", icon='REMOVE', text="Remove")
-        row.operator('bodies.move_item', icon='TRIA_UP', text='').direction = 'UP'
-        row.operator('bodies.move_item', icon='TRIA_DOWN', text='').direction = 'DOWN'
-
-        if qcgen.bodies_active >= 0 and qcgen.bodies:
-            item = qcgen.bodies[qcgen.bodies_active]
-            #box = layout.box()
-            box = layout
-            row = box.row()
-            row.use_property_split = False
-            row.prop(item, "component_type", expand=True)
-
-            if item.component_type != 'collisionmodel': # collision models don't have names
-                box.prop(item, "name")
-
-            if item.component_type == 'attachment':
-                box.prop(item, "bone")
-            else:
-                box.prop(item, "path")
-
-            if item.component_type == 'collisionmodel':
-                box.prop(item, "mass")
-
-        layout.separator()
-
-        layout.prop(qcgen, "surfaceprop")
-        layout.prop(qcgen, "contents")"""
 
         split = layout.split()
         col = split.column()
@@ -349,6 +391,9 @@ class QC_PT_QCPanel(bpy.types.Panel):
         row.prop(qcgen, 'use_collisionjoints')
         layout.prop(qcgen, 'qc_text')
 
+        layout.prop(qcgen, 'open_in_text_editor')
+        layout.prop(qcgen, 'save_qc_file')
+        
         layout.operator("qcgen.write", text="Write QC")
 
 from .vmt_generator import VMT_Properties, classes_vmt
@@ -363,7 +408,6 @@ classes = (
     QC_OT_MoveBody,
 
     QC_OT_WriteQC,
-
     QC_OT_AutofillVS,
 
     QC_PT_QCPanel
