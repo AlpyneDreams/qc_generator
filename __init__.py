@@ -62,6 +62,11 @@ class QC_Properties(PropertyGroup):
         type=bpy.types.Object,
         options={'HIDDEN'}
     )
+    concave: BoolProperty(
+        name="Concave",
+        options={'HIDDEN'},
+        default=False
+    )
     use_collisionjoints: BoolProperty(
         name="Use $collisionjoints",
         options={'HIDDEN'}
@@ -332,8 +337,16 @@ class QC_PT_QCPanel(bpy.types.Panel):
 
         layout.separator()
 
-        layout.prop(qcgen, 'collisionmodel')
-        layout.prop(qcgen, 'use_collisionjoints')
+        box = layout.box()
+        box.prop(qcgen, 'collisionmodel')        
+
+        row = box.row()
+        if qcgen.collisionmodel:
+            row.enabled = True
+        else:
+            row.enabled = False
+        row.prop(qcgen, 'concave')
+        row.prop(qcgen, 'use_collisionjoints')
         layout.prop(qcgen, 'qc_text')
 
         layout.operator("qcgen.write", text="Write QC")

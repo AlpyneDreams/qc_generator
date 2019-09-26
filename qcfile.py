@@ -121,9 +121,10 @@ def qc_from_vs(context):
     if props.collisionmodel:
         cmd = 'collisionjoints' if props.use_collisionjoints else 'collisionmodel'
         qc_item(qc_exportable(props.collisionmodel), cmd=cmd, name=False)
-        qc_block_begin()
-        qcln('$concaveperjoint' if props.use_collisionjoints else '$concave')
-        qc_block_end()
+        if props.concave:
+            qc_block_begin()
+            qcln('$concaveperjoint' if props.use_collisionjoints else '$concave')
+            qc_block_end()
 
     if len(sequences) <= 0 and body_reference:
         qc_item(body_reference, cmd='sequence', name='idle')
