@@ -57,6 +57,15 @@ class QC_Properties(PropertyGroup):
         type=bpy.types.Text,
         options={'HIDDEN'}
     )
+    collisionmodel : PointerProperty(
+        name="Collision Model",
+        type=bpy.types.Object,
+        options={'HIDDEN'}
+    )
+    use_collisionjoints: BoolProperty(
+        name="Use $collisionjoints",
+        options={'HIDDEN'}
+    )
     modelname: StringProperty(
         name="MDL Name", description="The path of the .mdl file relative to the models/ dir.")
     cdmaterials: StringProperty(
@@ -70,7 +79,7 @@ class QC_Properties(PropertyGroup):
         name="Static Prop", default=False)
     scale: IntProperty(
         name="Scale",
-        default=0
+        default=1
     )
     surfaceprop: StringProperty(
         name="Surface Property"
@@ -188,10 +197,25 @@ class QC_OT_WriteQC(Operator):
     def execute(self, context):
         from .qcfile import write_qc_file, qc_from_vs
         qctxt = qc_from_vs(context)
+        if not context.scene.qcgen.qc_text:
+            i = len(bpy.data.texts)
+            bpy.ops.text.new()
+            context.scene.qcgen.qc_text = bpy.data.texts[i]
+            context.scene.qcgen.qc_text.name = os.path.splitext(os.path.basename(bpy.data.filepath))[0] + ".qc"
         qc_text = context.scene.qcgen.qc_text
-        if qc_text:
-            qc_text.clear()
-            qc_text.write(qctxt)
+        qc_text.clear()
+        qc_text.write(qctxt)
+
+        for area in bpy.context.screen.areas:
+            if area.type == 'TEXT_EDITOR':
+                text_editor = area.spaces.active
+                break
+        else:
+            text_editor = None
+        
+        if text_editor:
+            text_editor.text = qc_text
+
         #write_qc_file(context.scene.qcgen)
         return{'FINISHED'}
 
@@ -308,6 +332,8 @@ class QC_PT_QCPanel(bpy.types.Panel):
 
         layout.separator()
 
+        layout.prop(qcgen, 'collisionmodel')
+        layout.prop(qcgen, 'use_collisionjoints')
         layout.prop(qcgen, 'qc_text')
 
         layout.operator("qcgen.write", text="Write QC")

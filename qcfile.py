@@ -85,37 +85,59 @@ def qc_from_vs(context):
             else:
                 qcln('$%s %s' % (key, value))
 
-    # QC Command: $command "name" "path/file.smd"
+    file_ext = '.' + (context.scene.vs.export_format.lower() or 'smd')
+
+    from io_scene_valvesource import shouldExportGroup
+
+    # QC Command: $command "name" "path/file.ext"
     # set name=False for nameless commands like $collisionmodel
-    def qc_item(item, cmd='body', subdir='', name=None):
+    def qc_item(item, cmd='body', subdir='', name=None, ext=file_ext):
+        
         obj = item.get_id()
+        should = shouldExportGroup(obj) if type(obj) == bpy.types.Collection else obj.vs.export
+        if not should: return
+
         if subdir == '' and obj.vs.subdir and obj.vs.subdir != '.':
             subdir = obj.vs.subdir + '/'
 
         if name == False:
-            qcln('${cmd} "{subdir}{o.name}"'.format(cmd=cmd, subdir=subdir, o=obj))
+            qcln('${cmd} "{subdir}{o.name}{ext}"'.format(cmd=cmd, subdir=subdir, o=obj, ext=ext))
         else:
             name = name or obj.name
-            qcln('${cmd} "{name}" "{subdir}{o.name}"'.format(cmd=cmd, subdir=subdir, o=obj, name=name))
+            qcln('${cmd} "{name}" "{subdir}{o.name}{ext}"'.format(cmd=cmd, subdir=subdir, o=obj, name=name, ext=ext))
 
+    
+    def qc_exportable(obj):
+        from io_scene_valvesource.utils import getExportablesForId
+        return getExportablesForId(obj)[0]
     
 
     if body_reference:
         qc_item(body_reference, cmd='body', name='body')
-    if body_physics:
-        qc_item(body_physics, cmd='collisionmodel', name=False)
+
+    for body in bodies:
+        qc_item(body, cmd='body')
+
+    if props.collisionmodel:
+        cmd = 'collisionjoints' if props.use_collisionjoints else 'collisionmodel'
+        qc_item(qc_exportable(props.collisionmodel), cmd=cmd, name=False)
         qc_block_begin()
-        qcln('$concave')
+        qcln('$concaveperjoint' if props.use_collisionjoints else '$concave')
         qc_block_end()
+
+    if len(sequences) <= 0 and body_reference:
+        qc_item(body_reference, cmd='sequence', name='idle')
     
     for seq in sequences:
-        obj = item.get_id()
+        obj = seq.get_id()
+        print(obj.type)
         if obj.data.vs.action_selection == 'FILTERED':
             subdir = ''
             if obj.vs.subdir and obj.vs.subdir != '.':
                 subdir = obj.vs.subdir + '/'
             for action in actionsForFilter(obj.vs.action_filter):
-                qcln('$sequence "{o.name}" "{subdir}{o.name}.smd"'.format(subdir=subdir, o=action))
+                qcln('$sequence "{o.name}" "{subdir}{o.name}.{file_ext}"'.format(
+                    subdir=subdir, o=action))
     
     return qctxt
 
