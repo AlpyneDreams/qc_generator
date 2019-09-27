@@ -137,8 +137,8 @@ def qc_from_vs(context):
             if obj.vs.subdir and obj.vs.subdir != '.':
                 subdir = obj.vs.subdir + '/'
             for action in actionsForFilter(obj.vs.action_filter):
-                qcln('$sequence "{o.name}" "{subdir}{o.name}.{file_ext}"'.format(
-                    subdir=subdir, o=action))
+                qcln('$sequence "{o.name}" "{subdir}{o.name}{ext}"'.format(
+                    subdir=subdir, o=action, ext=file_ext))
     
     return qctxt
 
