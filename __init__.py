@@ -299,6 +299,7 @@ class QC_OT_WriteQC(Operator):
         return{'FINISHED'}
 
 class QC_OT_AutofillVS(Operator):
+    """Automatically determine paths for Source Engine Export"""
     bl_idname = "qcgen.autofill_vs"
     bl_label = "Autofill Blender Source Tools paths"
     
@@ -335,6 +336,9 @@ class QC_OT_AutofillVS(Operator):
         # root/game/hl2
         context.scene.vs.game_path = os.path.join(gamedir, gamedirname)
 
+        if not context.scene.vs.export_path:
+            context.scene.vs.export_path = "//"
+
         i = curdir.find('models')
         j = i + curdir[i:].replace('\\', '/').find('/') + 1
         
@@ -359,7 +363,6 @@ class QC_PT_QCPanel(bpy.types.Panel):
         qcgen = context.scene.qcgen
 
         layout = self.layout
-        layout.use_property_split = True
         layout.use_property_decorate = False
 
 
@@ -370,6 +373,8 @@ class QC_PT_QCPanel(bpy.types.Panel):
 
         layout.prop(qcgen, "modelname")
         layout.prop(qcgen, "cdmaterials")
+
+        layout.use_property_split = True
 
         split = layout.split()
         col = split.column()
