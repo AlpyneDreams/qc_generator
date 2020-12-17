@@ -14,8 +14,8 @@ bl_info = {
     "name": "QC Generator",
     "author": "Alpyne",
     "description": "",
-    "blender": (2, 80, 0),
-    "version": (0, 0, 1),
+    "blender": (2, 90, 0),
+    "version": (1, 0, 3),
     "location": "",
     "warning": "",
     "category": "Generic"
@@ -79,7 +79,7 @@ class QC_Properties(PropertyGroup):
         default=False
     )
     use_collisionjoints: BoolProperty(
-        name="Use $collisionjoints",
+        name="$collisionjoints",
         options={'HIDDEN'}
     )
     modelname: StringProperty(
