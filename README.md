@@ -42,4 +42,4 @@ When you click on the name of a material, it'll look for a VMT file of the same 
 
 ## Troubleshooting
 
-The **Find Engine Path** button will only work seamlessly if your blend file is in a folder like `<root>/content/<game>/<whatever>`, where `<root>` is some arbitrary folder, `<game>` is the name of your game (e.g. `hl2`) and there exists a source engine game folder (the one that would contain `GameInfo.txt`) in `<root>/game/<game>` and a bin folder with `studiomdl.exe` in `<root>/game/bin`.
+The <kbd>Find Engine Path</kbd> button will only work seamlessly if your blend file is in a folder like `<root>/content/<game>/<whatever>`, where `<root>` is some arbitrary folder, `<game>` is the name of your game (e.g. `hl2`) and there exists a source engine game folder (the one that would contain `GameInfo.txt`) in `<root>/game/<game>` and a bin folder with `studiomdl.exe` in `<root>/game/bin`.
