@@ -401,7 +401,6 @@ class QC_PT_QCPanel(bpy.types.Panel):
         
         layout.operator("qcgen.write", text="Write QC")
 
-from .vmt_generator import VMT_Properties, classes_vmt
 
 classes = (    
     QC_Body,
