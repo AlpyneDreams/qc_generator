@@ -7,7 +7,7 @@ from bpy.props import *
 from . import QC_Properties
 
 
-# uses data from io_scene_valuesource
+# uses data from io_scene_valvesource
 def qc_from_vs(context):
 
     qctxt = ''

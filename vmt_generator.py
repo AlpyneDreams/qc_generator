@@ -6,8 +6,6 @@ from bpy.types import PropertyGroup, StringProperty, PointerProperty, Collection
 from bpy.types import Operator
 from bpy.props import *
 
-from io_scene_valvesource.utils import getGamePath
-
 TEX_FILE_EXTS = ('.tga', '.psd')
 VMT_FILE_EXT = '.vmt'
 
@@ -57,7 +55,7 @@ class VMT_OT_MakeVTF(Operator):
         #self.report({'INFO'}, vtex_path)
         #self.report({'INFO'}, img_path)
 
-        mat_path = os.path.join(getGamePath(), 'materials', context.scene.qcgen.cdmaterials)
+        mat_path = os.path.join(context.scene.vs.game_path, 'materials', context.scene.qcgen.cdmaterials)
 
         print("Running vtex for \"{}\"...\n".format(os.path.basename(img_path)))
         vtex = subprocess.Popen([
@@ -92,7 +90,7 @@ class VMT_OT_MakeVMT(Operator):
                 {'ERROR'}, "No material found with name: " + self.mat_name)
             return {'FINISHED'}
 
-        mat_path = os.path.join(getGamePath(), 'materials', context.scene.qcgen.cdmaterials)
+        mat_path = os.path.join(context.scene.vs.game_path, 'materials', context.scene.qcgen.cdmaterials)
         vmt_path = os.path.join(mat_path, mat.name + VMT_FILE_EXT)
         vtf_path = os.path.join(context.scene.qcgen.cdmaterials, os.path.splitext(os.path.basename(vmt_path))[0])
 
@@ -151,7 +149,7 @@ class VMT_PT_VMTPanel(bpy.types.Panel):
         layout.prop(context.scene.vs, 'game_path')
         layout.prop(context.scene.qcgen, 'cdmaterials')
         
-        #mat_path = os.path.join(getGamePath(), 'materials', context.scene.qcgen.cdmaterials)
+        #mat_path = os.path.join(context.scene.vs.game_path, 'materials', context.scene.qcgen.cdmaterials)
         #layout.label(text=mat_path)
 
         layout.separator()
