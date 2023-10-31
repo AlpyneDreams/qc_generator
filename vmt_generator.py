@@ -60,6 +60,7 @@ class VMT_OT_MakeVTF(Operator):
         print("Running vtex for \"{}\"...\n".format(os.path.basename(img_path)))
         vtex = subprocess.Popen([
             vtex_path,
+            "-game", context.scene.vs.game_path,
             "-nopause",
             "-nop4",
             "-outdir", mat_path,
@@ -71,7 +72,7 @@ class VMT_OT_MakeVTF(Operator):
 
 
 class VMT_OT_MakeVMT(Operator):
-    """Compile an image to a VMT file"""
+    """Generate a VMT file"""
     bl_idname = "vmtgen.generate"
     bl_label = "Generate a VMT file"
 
@@ -164,7 +165,8 @@ class VMT_PT_VMTPanel(bpy.types.Panel):
         layout.label(text="Create/Open VMT for Materials:")
         col = layout.column_flow(columns=2)
         for mat in bpy.data.materials:
-            col.operator('vmtgen.generate', text=mat.name, icon='MATERIAL').mat_name = mat.name
+            if mat.name != "Dots Stroke":
+                col.operator('vmtgen.generate', text=mat.name, icon='MATERIAL').mat_name = mat.name
 
 
 

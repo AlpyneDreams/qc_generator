@@ -57,8 +57,8 @@ def qc_from_vs(context):
     for key in anots:
         if hasattr(props, key):
             value = getattr(props, key)
-            value_type = anots[key][0]
-            anot = anots[key][1]
+            value_type = anots[key].function
+            anot = anots[key].keywords
 
             if 'options' in anot and 'HIDDEN' in anot['options']:
                 print("IGNORED: " + key)
@@ -93,7 +93,7 @@ def qc_from_vs(context):
     # set name=False for nameless commands like $collisionmodel
     def qc_item(item, cmd='body', subdir='', name=None, ext=file_ext):
         
-        obj = item.get_id()
+        obj = item.obj
         should = shouldExportGroup(obj) if type(obj) == bpy.types.Collection else obj.vs.export
         if not should: return
 
