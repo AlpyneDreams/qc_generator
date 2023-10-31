@@ -15,7 +15,7 @@ bl_info = {
     "author": "Alpyne",
     "description": "",
     "blender": (2, 90, 0),
-    "version": (1, 0, 5),
+    "version": (1, 0, 6),
     "location": "",
     "warning": "",
     "category": "Generic"
