@@ -79,11 +79,11 @@ class QC_Properties(PropertyGroup):
         default=False
     )
     use_collisionjoints: BoolProperty(
-        name="$collisionjoints",
+        name="Collision Joints",
         options={'HIDDEN'}
     )
     modelname: StringProperty(
-        name="MDL Name", description="The path of the .mdl file relative to the models/ dir.")
+        name="MDL File Path", description="The path of the .mdl file relative to the models/ dir.")
     cdmaterials: StringProperty(
         name="CD Materials", description="The path of the model's materials relative to the materials/ dir.",
         default="models/")
@@ -93,7 +93,7 @@ class QC_Properties(PropertyGroup):
         name="Selected Body", default=0, min=0, options={'HIDDEN'})  # , update=bodies_active_changed)
     staticprop: BoolProperty(
         name="Static Prop", default=False)
-    scale: IntProperty(
+    scale: FloatProperty(
         name="Scale",
         default=1
     )
