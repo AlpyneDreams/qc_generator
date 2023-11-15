@@ -70,7 +70,7 @@ class QC_Properties(PropertyGroup):
     
     collisionmodel : PointerProperty(
         name="Collision Model",
-        type=bpy.types.Object,
+        type=bpy.types.Collection,
         options={'HIDDEN'}
     )
     concave: BoolProperty(

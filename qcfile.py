@@ -97,7 +97,8 @@ def qc_from_vs(context):
     # set name=False for nameless commands like $collisionmodel
     def qc_item(item, cmd='body', subdir='', name=None, ext=file_ext):
         
-        obj = item.obj
+        obj = item.obj or item.collection
+
         should = shouldExportGroup(obj) if type(obj) == bpy.types.Collection else obj.vs.export
         if not should: return
 
@@ -110,11 +111,17 @@ def qc_from_vs(context):
             name = name or obj.name
             qcln('${cmd} "{name}" "{subdir}{o.name}{ext}"'.format(cmd=cmd, subdir=subdir, o=obj, name=name, ext=ext))
 
-    
     def qc_exportable(obj):
-        from io_scene_valvesource.utils import getExportablesForId
-        return getExportablesForId(obj)[0]
-    
+        for item in context.scene.vs.export_list:
+            if item.obj and item.obj == obj:
+                return item
+            elif item.collection:
+                if item.collection == obj:
+                    return item
+                else:
+                    for ob in item.collection.all_objects:
+                        if ob == obj:
+                            return item
 
     if body_reference:
         qc_item(body_reference, cmd='body', name='body')
@@ -134,8 +141,9 @@ def qc_from_vs(context):
         qc_item(body_reference, cmd='sequence', name='idle')
     
     for seq in sequences:
-        obj = seq.get_id()
-        print(obj.type)
+        if not seq.obj:
+            continue
+        obj = seq.obj
         if obj.data.vs.action_selection == 'FILTERED':
             subdir = ''
             if obj.vs.subdir and obj.vs.subdir != '.':
