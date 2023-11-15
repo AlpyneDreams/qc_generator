@@ -97,6 +97,9 @@ class VMT_OT_MakeVMT(Operator):
 
         #self.report({'INFO'}, vmt_path)
 
+        if not os.path.exists(mat_path):
+            os.makedirs(mat_path)
+
         # create if the VMT doesn't already exist 
         if not os.path.exists(vmt_path):
             f = open(vmt_path, 'w', encoding='utf8')
