@@ -82,6 +82,11 @@ class QC_Properties(PropertyGroup):
         name="Collision Joints",
         options={'HIDDEN'}
     )
+    generate_bone_followers: BoolProperty(
+        name="Generate Bone Followers",
+        options={'HIDDEN'},
+        default=True
+    )
     modelname: StringProperty(
         name="MDL File Path", description="The path of the .mdl file relative to the models/ dir.")
     cdmaterials: StringProperty(
@@ -433,6 +438,10 @@ class QT_PT_QCPhysics(BasePanel, bpy.types.Panel):
             row.enabled = False
         layout.prop(qcgen, 'concave')
         layout.prop(qcgen, 'use_collisionjoints')
+
+        col = layout.column()
+        col.enabled = qcgen.use_collisionjoints
+        col.prop(qcgen, 'generate_bone_followers')
 
         #layout.prop(qcgen, "contents")
 
