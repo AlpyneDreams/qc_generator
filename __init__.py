@@ -351,55 +351,90 @@ class QC_OT_AutofillVS(Operator):
 
         return{'FINISHED'}
 
-class QC_PT_QCPanel(bpy.types.Panel):
-    """Creates a Panel in the scene context of the properties editor"""
-    bl_label = "QC Generator"
-    bl_idname = "QC_PT_QCPanel"
+class BasePanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
+    #bl_options = {"DEFAULT_CLOSED"}
     bl_context = "scene"
+    qc_icon = None
+
+    def draw_header(self, context):
+        if self.qc_icon:
+            self.layout.label(icon=self.qc_icon)	
 
     def draw(self, context):
         qcgen = context.scene.qcgen
-
         layout = self.layout
         layout.use_property_decorate = False
+        layout.use_property_split = True
+        self.paint(qcgen, layout, context)
 
+    def paint(self, qcgen, layout: bpy.types.UILayout, context: bpy.types.Context):
+        pass
+
+class QC_PT_QCPanel(BasePanel, bpy.types.Panel):
+    """Creates a Panel in the scene context of the properties editor"""
+    bl_label = "QC Generator"
+    bl_idname = "QC_PT_QCPanel"
+
+    def paint(self, qcgen, layout, context):
+        layout.use_property_split = False
 
         if context.scene.vs:
             layout.operator("qcgen.autofill_vs", text="Find Engine Path")
-        
-        layout.separator()
 
+        layout.operator("qcgen.write", text="Write QC")
+
+class QC_PT_Paths(BasePanel, bpy.types.Panel):
+    bl_parent_id = "QC_PT_QCPanel"
+    bl_label = "Paths"
+    qc_icon = 'FILE_FOLDER'
+
+    def paint(self, qcgen, layout, context):
+        layout.use_property_split = False
+        
         layout.prop(qcgen, "modelname")
         layout.prop(qcgen, "cdmaterials")
 
         layout.use_property_split = True
 
-        split = layout.split()
-        col = split.column()
-        col.prop(qcgen, "staticprop")
-        col = split.column()
-        col.prop(qcgen, "scale")
+class QT_PT_QCOutput(BasePanel, bpy.types.Panel):
+    bl_parent_id = "QC_PT_QCPanel"
+    bl_label = "Output"
+    qc_icon = 'TEXT'
 
-        layout.separator()
-
-        box = layout.box()
-        box.prop(qcgen, 'collisionmodel')        
-
-        row = box.row()
-        if qcgen.collisionmodel:
-            row.enabled = True
-        else:
-            row.enabled = False
-        row.prop(qcgen, 'concave')
-        row.prop(qcgen, 'use_collisionjoints')
+    def paint(self, qcgen, layout, context):
         layout.prop(qcgen, 'qc_text')
 
         layout.prop(qcgen, 'open_in_text_editor')
         layout.prop(qcgen, 'save_qc_file')
-        
-        layout.operator("qcgen.write", text="Write QC")
+
+class QT_PT_QCModel(BasePanel, bpy.types.Panel):
+    bl_parent_id = "QC_PT_QCPanel"
+    bl_label = "Model"
+    qc_icon = 'MESH_UVSPHERE'
+
+    def paint(self, qcgen, layout, context):
+        layout.prop(qcgen, "staticprop")
+        layout.prop(qcgen, "scale")
+
+class QT_PT_QCPhysics(BasePanel, bpy.types.Panel):
+    bl_parent_id = "QC_PT_QCPanel"
+    bl_label = "Physics"
+    qc_icon = 'MESH_ICOSPHERE'
+
+    def paint(self, qcgen, layout, context):
+        layout.prop(qcgen, 'collisionmodel')        
+
+        row = layout.row()
+        if qcgen.collisionmodel:
+            row.enabled = True
+        else:
+            row.enabled = False
+        layout.prop(qcgen, 'concave')
+        layout.prop(qcgen, 'use_collisionjoints')
+
+        #layout.prop(qcgen, "contents")
 
 from .vmt_generator import VMT_Properties, classes_vmt
 
@@ -415,7 +450,11 @@ classes = (
     QC_OT_WriteQC,
     QC_OT_AutofillVS,
 
-    QC_PT_QCPanel
+    QC_PT_QCPanel,
+    QC_PT_Paths,
+    QT_PT_QCOutput,
+    QT_PT_QCModel,
+    QT_PT_QCPhysics,
 ) + classes_vmt
 
 

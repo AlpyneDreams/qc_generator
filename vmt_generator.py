@@ -6,6 +6,8 @@ from bpy.types import PropertyGroup, StringProperty, PointerProperty, Collection
 from bpy.types import Operator
 from bpy.props import *
 
+from . import BasePanel, QC_PT_Paths
+
 TEX_FILE_EXTS = ('.tga', '.psd')
 VMT_FILE_EXT = '.vmt'
 
@@ -137,26 +139,21 @@ class VMT_OT_MakeVMT(Operator):
 
         return{'FINISHED'}
 
+class VMT_PT_Paths(QC_PT_Paths, bpy.types.Panel):
+    bl_parent_id = "VMT_PT_VMTPanel"
 
-class VMT_PT_VMTPanel(bpy.types.Panel):
-    """Creates a Panel in the scene context of the properties editor"""
-    bl_label = "VMT/VTF Generator"
-    bl_idname = "VMT_PT_VMTPanel"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "scene"
+class VMT_PT_VMTSettings(BasePanel, bpy.types.Panel):
+    bl_parent_id = "VMT_PT_VMTPanel"
+    bl_label = "Materials"
+    qc_icon = 'MATERIAL'
 
     def draw(self, context):
         layout = self.layout
         vmtgen = context.scene.vmtgen
         
-        layout.prop(context.scene.vs, 'game_path')
-        layout.prop(context.scene.qcgen, 'cdmaterials')
-        
         #mat_path = os.path.join(context.scene.vs.game_path, 'materials', context.scene.qcgen.cdmaterials)
         #layout.label(text=mat_path)
 
-        layout.separator()
         layout.label(text="Compile VTF for Images: (Requires TGA/PSD file)")
         col = layout.column_flow(columns=2)
         for img in bpy.data.images:
@@ -171,8 +168,13 @@ class VMT_PT_VMTPanel(bpy.types.Panel):
             if mat.name != "Dots Stroke":
                 col.operator('vmtgen.generate', text=mat.name, icon='MATERIAL').mat_name = mat.name
 
-
-
+class VMT_PT_VMTPanel(BasePanel, bpy.types.Panel):
+    """Creates a Panel in the scene context of the properties editor"""
+    bl_label = "VMT/VTF Generator"
+    bl_idname = "VMT_PT_VMTPanel"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "scene"
 
 
 
@@ -180,5 +182,7 @@ classes_vmt = (
     VMT_Properties,
     VMT_OT_MakeVTF,
     VMT_OT_MakeVMT,
-    VMT_PT_VMTPanel
+    VMT_PT_VMTPanel,
+    VMT_PT_Paths,
+    VMT_PT_VMTSettings
 )

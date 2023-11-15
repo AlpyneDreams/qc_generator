@@ -33,7 +33,7 @@ def qc_from_vs(context):
 
     bodies = []
     body_reference = None
-    body_physics = None
+    body_physics = None # TODO: This should be set by collision model in the settings
 
     sequences = []
 
