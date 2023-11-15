@@ -81,6 +81,10 @@ def qc_from_vs(context):
                 continue
 
             if type(value) == str:
+                if key == 'modelname':
+                    # Remove models/ from $modelname
+                    if value.startswith('models/') or value.startswith('models\\'):
+                        value = value[7:]
                 qcln('$%s "%s"' % (key, value))
             else:
                 qcln('$%s %s' % (key, value))
