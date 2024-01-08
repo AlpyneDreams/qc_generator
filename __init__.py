@@ -445,7 +445,6 @@ class QT_PT_QCPhysics(BasePanel, bpy.types.Panel):
 
         #layout.prop(qcgen, "contents")
 
-from .vmt_generator import VMT_Properties, classes_vmt
 
 classes = (    
     QC_Body,
